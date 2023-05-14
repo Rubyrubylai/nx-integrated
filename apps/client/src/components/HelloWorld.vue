@@ -1,6 +1,8 @@
 <template>
   <div class="hello">
     <h1>{{ msg }}</h1>
+    <h1 style="color:red;">{{ apiMsg }}</h1>
+
     <p>
       For a guide and recipes on how to configure / customize this project,<br />
       check out the
@@ -80,12 +82,27 @@
 
 <script lang="ts">
 import Vue from 'vue';
+import axios from 'axios'; 
 
 export default Vue.extend({
   name: 'HelloWorld',
   props: {
     msg: String,
   },
+  created() {
+    this.getHello()
+  },
+  methods: {
+    async getHello() {
+      const res = await axios.get('http://localhost:3000/api')
+      this.apiMsg = res.data.message
+    }
+  },
+  data() {
+    return {
+      apiMsg: ''
+    }
+  }
 });
 </script>
 

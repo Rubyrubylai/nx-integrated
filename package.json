@@ -4,6 +4,7 @@
   "license": "MIT",
   "scripts": {
     "start:api": "nx serve sever",
+    "start": "nx serve client",
     "postinstall": "node node_modules/@nx-plus/vue/patch-nx-dep-graph.js"
   },
   "private": true,
