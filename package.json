@@ -2,7 +2,9 @@
   "name": "nx-integrated",
   "version": "0.0.0",
   "license": "MIT",
-  "scripts": {},
+  "scripts": {
+    "start:api": "nx serve sever"
+  },
   "private": true,
   "dependencies": {
     "@nestjs/common": "^9.1.1",
