@@ -9,7 +9,7 @@ import { PaymentsModule } from '../payments/payments.module';
   imports: [
     GraphQLModule.forRoot<ApolloDriverConfig>({
       driver: ApolloDriver,
-      autoSchemaFile: join(process.cwd(), '/libs/schema.gql')
+      autoSchemaFile: join(process.cwd(), '../../libs/schema.gql')
     }),
     PaymentsModule,
   ],
