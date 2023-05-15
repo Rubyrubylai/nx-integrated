@@ -5,7 +5,8 @@
   "scripts": {
     "start:api": "nx serve server",
     "start": "nx serve client",
-    "postinstall": "node node_modules/@nx-plus/vue/patch-nx-dep-graph.js"
+    "postinstall": "node node_modules/@nx-plus/vue/patch-nx-dep-graph.js",
+    "generate": "graphql-codegen --config libs/codegen.yml"
   },
   "private": true,
   "dependencies": {
