@@ -94,8 +94,8 @@ export default Vue.extend({
   },
   methods: {
     async getHello() {
-      const res = await axios.get('http://localhost:3000/api')
-      this.apiMsg = res.data.message
+      // const res = await axios.get('http://localhost:3000/api')
+      // this.apiMsg = res.data.message
     }
   },
   data() {
