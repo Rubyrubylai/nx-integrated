@@ -22,7 +22,7 @@ jobs:
     steps:
       - checkout
       - run: npm ci
-      - nx/set-shas
+      - nx/set-shas --base=master
 
       - run: npx nx format:check
       - run: npx nx affected --base=$NX_BASE -t lint --parallel=3
@@ -32,7 +32,7 @@ jobs:
     steps:
       - checkout
       - run: npm ci
-      - nx/set-shas
+      - nx/set-shas --base=master
       - run:
           name: Print environment variables
           command: |
@@ -46,7 +46,7 @@ jobs:
     steps:
       - checkout
       - run: npm ci
-      - nx/set-shas
+      - nx/set-shas --base=master
 
       - run: npx nx affected --base=$NX_BASE -t build servers --parallel=3
 workflows:
