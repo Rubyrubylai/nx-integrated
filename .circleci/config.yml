@@ -9,10 +9,10 @@ commands:
           name: set env var
           command: |
             case $CIRCLE_BRANCH in
-              develop)
-                ENVIRONMENT='dev-0'
-                NX_BASE='dev'
-                NX_HEAD='$(git rev-parse --abbrev-ref HEAD)'
+              master)
+                ENVIRONMENT='production'
+                NX_BASE='$(git rev-parse --abbrev-ref HEAD)'
+                NX_HEAD='master'
             esac
             echo 'export SHA1_TAG=${CIRCLE_SHA1:0:7}' >> $BASH_ENV
             echo 'export SERVER_VERSION="$(date +%s)-${SHA1_TAG}"' >> $BASH_ENV
