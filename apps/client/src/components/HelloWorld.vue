@@ -82,7 +82,8 @@
 
 <script lang="ts">
 import Vue from 'vue';
-import axios from 'axios'; 
+import axios from 'axios';
+import { Payments } from '@nx-integrated/schema';
 
 export default Vue.extend({
   name: 'HelloWorld',
@@ -90,10 +91,14 @@ export default Vue.extend({
     msg: String,
   },
   created() {
-    this.getHello()
+    this.getHello({
+      id: 'GOGO',
+      description: 'QQ'
+    })
   },
   methods: {
-    async getHello() {
+    async getHello(p: Payments) {
+      this.apiMsg = p.id
       // const res = await axios.get('http://localhost:3000/api')
       // this.apiMsg = res.data.message
     }
