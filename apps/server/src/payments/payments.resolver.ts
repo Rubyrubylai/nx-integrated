@@ -12,6 +12,7 @@ export class PaymentsResolver {
 
 	@Query(returns => Payments, { name: 'payments'})
 	async getPayment(@Args() args: GetPaymentsArgs): Promise<Payments> {  // 自定義 dto
+		console.log('test')
 		return await this.paymentsService.findOne(args)
 	}
 }
