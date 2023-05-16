@@ -3,7 +3,7 @@ orbs:
   nx: nrwl/nx@1.6.1
 commands:
   set-version-env:
-    description: Set SHA1_TAG, SERVER_VERSION, NX ENV
+    description: Set SHA1_TAG, SERVER_VERSION
     steps:
       - run:
           name: set env var
@@ -11,14 +11,10 @@ commands:
             case $CIRCLE_BRANCH in
               master)
                 ENVIRONMENT='production'
-                NX_BASE='$(git rev-parse --abbrev-ref HEAD)'
-                NX_HEAD='master'
             esac
             echo 'export SHA1_TAG=${CIRCLE_SHA1:0:7}' >> $BASH_ENV
             echo 'export SERVER_VERSION="$(date +%s)-${SHA1_TAG}"' >> $BASH_ENV
             echo 'export ENVIRONMENT=$ENVIRONMENT' >> $BASH_ENV
-            echo 'export NX_BASE=${NX_BASE}' >> $BASH_ENV
-            echo 'export NX_HEAD=${NX_HEAD}' >> $BASH_ENV
 jobs:
   lint:
     docker:
@@ -29,7 +25,7 @@ jobs:
       - nx/set-shas
 
       - run: npx nx format:check
-      - run: npx nx affected --base=${NX_BASE} --head=${NX_HEAD} -t lint --parallel=3
+      - run: npx nx affected -t lint --parallel=3
   test:
     docker:
       - image: cimg/node:lts-browsers
@@ -38,7 +34,11 @@ jobs:
       - run: npm ci
       - nx/set-shas
 
-      - run: npx nx affected:test --base=${NX_BASE} --head=${NX_HEAD} --parallel=3
+      - run: |
+        echo "BASE: ${NX_BASE}"
+        echo "HEAD: ${NX_HEAD}"
+
+      - run: npx nx affected:test --parallel=3
   build:
     docker:
       - image: cimg/node:lts-browsers
@@ -47,7 +47,7 @@ jobs:
       - run: npm ci
       - nx/set-shas
 
-      - run: npx nx affected --base=${NX_BASE} --head=${NX_HEAD} -t build servers --parallel=3
+      - run: npx nx affected -t build servers --parallel=3
 workflows:
   lint-test-push:
     jobs:
