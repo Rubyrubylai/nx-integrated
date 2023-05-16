@@ -29,7 +29,7 @@ jobs:
       - nx/set-shas
 
       - run: npx nx format:check
-      - run: npx nx affected --base=$NX_BASE --head=$NX_HEAD -t lint --parallel=3
+      - run: npx nx affected --base=${NX_BASE} --head=${NX_HEAD} -t lint --parallel=3
   test:
     docker:
       - image: cimg/node:lts-browsers
@@ -38,7 +38,7 @@ jobs:
       - run: npm ci
       - nx/set-shas
 
-      - run: npx nx affected:test --base=$NX_BASE --head=$NX_HEAD --parallel=3
+      - run: npx nx affected:test --base=${NX_BASE} --head=${NX_HEAD} --parallel=3
   build:
     docker:
       - image: cimg/node:lts-browsers
@@ -47,7 +47,7 @@ jobs:
       - run: npm ci
       - nx/set-shas
 
-      - run: npx nx affected --base=$NX_BASE --head=$NX_HEAD -t build servers --parallel=3
+      - run: npx nx affected --base=${NX_BASE} --head=${NX_HEAD} -t build servers --parallel=3
 workflows:
   lint-test-push:
     jobs:
