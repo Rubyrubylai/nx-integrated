@@ -37,6 +37,11 @@ jobs:
       - checkout
       - run: npm ci
       - nx/set-shas
+      - run:
+          name: Print environment variables
+          command: |
+            echo "NX_BASE: $NX_BASE"
+            echo "NX_HEAD: $NX_HEAD"
 
       - run: npx nx affected:test --base=${NX_BASE} --head=${NX_HEAD} --parallel=3
   build:
