@@ -39,10 +39,6 @@ jobs:
             echo "NX_BASE: $NX_BASE"
             echo "NX_HEAD: $NX_HEAD"
 
-      - run: |
-        echo "BASE: $NX_BASE"
-        echo "HEAD: $NX_HEAD"
-
       - run: npx nx affected:test --base=$NX_BASE --parallel=3
   build:
     docker:
