@@ -3,18 +3,20 @@ orbs:
   nx: nrwl/nx@1.6.1
 commands:
   set-version-env:
-    description: Set SHA1_TAG, SERVER_VERSION
+    description: Set SHA1_TAG, SERVER_VERSION, NX_MAIN_BRANCH
     steps:
       - run:
           name: set env var
           command: |
             case $CIRCLE_BRANCH in
-              master)
-                ENVIRONMENT='production'
+              test)
+                ENVIRONMENT='test'
+                NX_MAIN_BRANCH='test'
             esac
             echo 'export SHA1_TAG=${CIRCLE_SHA1:0:7}' >> $BASH_ENV
             echo 'export SERVER_VERSION="$(date +%s)-${SHA1_TAG}"' >> $BASH_ENV
             echo 'export ENVIRONMENT=$ENVIRONMENT' >> $BASH_ENV
+            echo 'export NX_MAIN_BRANCH=$NX_MAIN_BRANCH' >> $BASH_ENV
 jobs:
   lint:
     docker:
@@ -23,7 +25,7 @@ jobs:
       - checkout
       - run: npm ci
       - nx/set-shas:
-          main-branch-name: 'master'
+          main-branch-name: $NX_MAIN_BRANCH
 
       - run: npx nx format:check
       - run: npx nx affected --base=$NX_BASE -t lint --parallel=3
@@ -34,7 +36,7 @@ jobs:
       - checkout
       - run: npm ci
       - nx/set-shas:
-          main-branch-name: 'master'
+          main-branch-name: $NX_MAIN_BRANCH
       - run:
           name: Print environment variables
           command: |
@@ -49,7 +51,7 @@ jobs:
       - checkout
       - run: npm ci
       - nx/set-shas:
-          main-branch-name: 'master'
+          main-branch-name: $NX_MAIN_BRANCH
 
       - run: npx nx affected --base=$NX_BASE -t build servers --parallel=3
 workflows:
