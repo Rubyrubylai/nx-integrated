@@ -73,7 +73,7 @@ jobs:
       - gcp-gcr/gcr-auth:
           gcloud-service-key: GOOGLE_SERVICE_ACCOUNT_KEY
       - gcp-gcr/build-image:
-          dockerfile: ./apps/server
+          dockerfile: apps/server
           extra_build_args: --build-arg SERVER_VERSION=$SERVER_VERSION
           image: <<parameters.image>>
           registry-url: <<parameters.registry-url>>
