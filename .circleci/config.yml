@@ -1,7 +1,10 @@
 version: 2.1
+env:
+  BEFORE_SHA: ${{ github.event.before }}
 orbs:
   nx: nrwl/nx@1.6.1
   gcp-gcr: circleci/gcp-gcr@0.13.0
+  circleci: circleci/api@1.1
 commands:
   set-version-env:
     description: Set SHA1_TAG, SERVER_VERSION
@@ -22,6 +25,22 @@ commands:
             echo "export ENVIRONMENT=$ENVIRONMENT" >> $BASH_ENV
             source $BASH_ENV
 jobs:
+  get-last-successful-commit:
+    docker:
+      - image: cimg/base:stable
+    steps:
+      - checkout
+      - circleci/api:
+          path: last_successful_commit
+          endpoint: project/github/Rubyrubylai/nx-integrated/pipeline
+          method: GET
+          query: filter[status]=success
+          headers:
+            Circle-Token: ${CIRCLE_TOKEN}
+      - run:
+          name: Print last successful commit SHA
+          command: echo "Last successful commit: $$(cat last_successful_commit | jq -r '.items[0].vcs_revision')"
+
   lint:
     docker:
       - image: cimg/node:lts-browsers
@@ -43,6 +62,10 @@ jobs:
       - run: npm ci
       - nx/set-shas:
           main-branch-name: $CIRCLE_BRANCH
+      - run:
+          name: Print environment variables
+          command: |
+            echo "base_revision: << pipeline.git.base_revision >>"
       - run: npx nx affected:test --base=remotes/origin/$CIRCLE_BRANCH --parallel=3
 
   build-server--and-push-image:
@@ -81,6 +104,7 @@ jobs:
 workflows:
   lint-test-push:
     jobs:
+      - get-last-successful-commit
       - lint
       - test
       - build-server--and-push-image:
