@@ -8,6 +8,8 @@ commands:
       - run:
           name: set env var
           command: |
+            NX_MAIN_BRANCH="test"
+
             case $CIRCLE_BRANCH in
               test)
                 ENVIRONMENT='test'
@@ -47,6 +49,7 @@ jobs:
       - run:
           name: Print environment variables
           command: |
+            echo "NX_MAIN_BRANCH: $NX_MAIN_BRANCH"
             echo "NX_BASE: $NX_BASE"
             echo "NX_HEAD: $NX_HEAD"
 
