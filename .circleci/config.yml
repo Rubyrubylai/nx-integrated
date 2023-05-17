@@ -6,7 +6,8 @@ workflows:
   setup:
     jobs:
       - path-filtering/filter:
-          base-revision: test
+          base-revision: master
           mapping: |
             apps/server/.* run-service-workflow true
+            apps/client/.* run-client-workflow true
           config-path: .circleci/workflows.yml
