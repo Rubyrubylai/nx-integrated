@@ -28,6 +28,7 @@ jobs:
       - image: cimg/node:lts-browsers
     steps:
       - checkout
+      - set-version-env
       - run: npm ci
       - nx/set-shas:
           main-branch-name: ${NX_MAIN_BRANCH}
@@ -39,6 +40,7 @@ jobs:
       - image: cimg/node:lts-browsers
     steps:
       - checkout
+      - set-version-env
       - run: npm ci
       - nx/set-shas:
           main-branch-name: ${NX_MAIN_BRANCH}
@@ -54,6 +56,7 @@ jobs:
       - image: cimg/node:lts-browsers
     steps:
       - checkout
+      - set-version-env
       - run: npm ci
       - nx/set-shas:
           main-branch-name: ${NX_MAIN_BRANCH}
@@ -62,6 +65,5 @@ jobs:
 workflows:
   lint-test-push:
     jobs:
-      - set-version-env
       - lint
       - test
