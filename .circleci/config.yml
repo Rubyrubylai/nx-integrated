@@ -58,7 +58,7 @@ jobs:
             echo "NX_HEAD: $NX_HEAD"
       - run: npx nx affected:test --base=$NX_BASE --parallel=3
 
-  build-and-push-image:
+  build-server--and-push-image:
     executor: gcp-gcr/default
     parameters:
       image:
@@ -70,6 +70,9 @@ jobs:
     steps:
       - checkout
       - set-version-env
+      - run: npm ci
+      - nx/set-shas
+      - run: npx nx affected -t build --parallel=3
       - gcp-gcr/gcr-auth:
           gcloud-service-key: GOOGLE_SERVICE_ACCOUNT_KEY
       - gcp-gcr/build-image:
@@ -93,7 +96,7 @@ workflows:
     jobs:
       - lint
       - test
-      - build-and-push-image:
+      - build-server--and-push-image:
           context:
             - gcr
           requires:
