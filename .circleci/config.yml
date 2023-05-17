@@ -31,7 +31,7 @@ jobs:
       - set-version-env
       - run: npm ci
       - nx/set-shas:
-          main-branch-name: ${NX_MAIN_BRANCH}
+          main-branch-name: $NX_MAIN_BRANCH
 
       - run: npx nx format:check
       - run: npx nx affected --base=$NX_BASE -t lint --parallel=3
@@ -43,7 +43,7 @@ jobs:
       - set-version-env
       - run: npm ci
       - nx/set-shas:
-          main-branch-name: ${NX_MAIN_BRANCH}
+          main-branch-name: $NX_MAIN_BRANCH
       - run:
           name: Print environment variables
           command: |
@@ -59,7 +59,7 @@ jobs:
       - set-version-env
       - run: npm ci
       - nx/set-shas:
-          main-branch-name: ${NX_MAIN_BRANCH}
+          main-branch-name: $NX_MAIN_BRANCH
 
       - run: npx nx affected --base=$NX_BASE -t build servers --parallel=3
 workflows:
