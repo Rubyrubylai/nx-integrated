@@ -24,6 +24,7 @@ commands:
             echo 'export SERVER_VERSION="$(date +%s)-${SHA1_TAG}"' >> $BASH_ENV
             echo 'export ENVIRONMENT=$ENVIRONMENT' >> $BASH_ENV
             echo 'export NX_MAIN_BRANCH=${NX_MAIN_BRANCH}' >> $BASH_ENV
+            source $BASH_ENV
 jobs:
   lint:
     docker:
