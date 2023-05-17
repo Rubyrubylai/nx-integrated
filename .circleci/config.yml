@@ -1,6 +1,7 @@
 version: 2.1
 orbs:
   nx: nrwl/nx@1.6.1
+  gcp-gcr: circleci/gcp-gcr@0.13.0
 commands:
   set-version-env:
     description: Set SHA1_TAG, SERVER_VERSION, NX_BASE_BRANCH
@@ -8,7 +9,7 @@ commands:
       - run:
           name: set env var
           command: |
-            NX_BASE_BRANCH="dev"
+            NX_BASE_BRANCH="master"
 
             case $CIRCLE_BRANCH in
               test)
@@ -35,9 +36,9 @@ jobs:
       - run: npm ci
       - nx/set-shas:
           main-branch-name: $NX_BASE_BRANCH
-
-      - run: npx nx format:check
+      - run: npx nx format:write
       - run: npx nx affected --base=$NX_BASE -t lint --parallel=3
+
   test:
     docker:
       - image: cimg/node:lts-browsers
@@ -55,21 +56,49 @@ jobs:
             echo "NX_BASE_BRANCH: $NX_BASE_BRANCH"
             echo "NX_BASE: $NX_BASE"
             echo "NX_HEAD: $NX_HEAD"
-
       - run: npx nx affected:test --base=$NX_BASE --parallel=3
-  build:
-    docker:
-      - image: cimg/node:lts-browsers
+
+  build-and-push-image:
+    executor: gcp-gcr/default
+    parameters:
+      image:
+        type: string
+      registry-url:
+        type: string
+      tag:
+        type: string
     steps:
       - checkout
       - set-version-env
-      - run: npm ci
-      - nx/set-shas:
-          main-branch-name: $NX_BASE_BRANCH
+      - gcp-gcr/gcr-auth:
+          gcloud-service-key: GOOGLE_SERVICE_ACCOUNT_KEY
+      - gcp-gcr/build-image:
+          dockerfile: ./apps/server
+          extra_build_args: --build-arg SERVER_VERSION=$SERVER_VERSION
+          image: <<parameters.image>>
+          registry-url: <<parameters.registry-url>>
+          tag: ${SHA1_TAG}
+      - gcp-gcr/push-image:
+          image: <<parameters.image>>
+          registry-url: <<parameters.registry-url>>
+          tag: ${SHA1_TAG}
+      - gcp-gcr/tag-image:
+          image: <<parameters.image>>
+          registry-url: <<parameters.registry-url>>
+          source-tag: ${SHA1_TAG}
+          target-tag: <<parameters.tag>>
 
-      - run: npx nx affected --base=$NX_BASE -t build server --parallel=3
 workflows:
   lint-test-push:
     jobs:
       - lint
       - test
+      - build-and-push-image:
+          context:
+            - gcr
+          requires:
+            - lint
+            - test
+          image: nx-integrated
+          registry-url: asia.gcr.io
+          tag: ${CIRCLE_BRANCH}
