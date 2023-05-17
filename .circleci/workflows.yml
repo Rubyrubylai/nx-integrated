@@ -110,6 +110,10 @@ jobs:
           target-tag: <<parameters.tag>>
 
 workflows:
+  push-client:
+    when: << pipeline.parameters.run-client-workflow >>
+    jobs:
+      - lint
   push-server:
     when: << pipeline.parameters.run-service-workflow >>
     jobs:
@@ -125,9 +129,3 @@ workflows:
           image: nx-integrated
           registry-url: asia.gcr.io
           tag: ${CIRCLE_BRANCH}
-  push-client:
-    when: << pipeline.parameters.run-client-workflow >>
-    jobs:
-      - lint
-
-      
