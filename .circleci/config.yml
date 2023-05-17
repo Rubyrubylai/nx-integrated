@@ -9,4 +9,5 @@ workflows:
           base-revision: master
           mapping: |
             apps/server/.* run-service-workflow true
+            apps/client/.* run-client-workflow true
           config-path: .circleci/workflows.yml
