@@ -11,7 +11,7 @@ parameters:
 orbs:
   nx: nrwl/nx@1.6.1
   gcp-gcr: circleci/gcp-gcr@0.13.0
-  circleci: circleci/api@1.1
+  # circleci: circleci/api@1.1
 
 commands:
   set-version-env:
