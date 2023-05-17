@@ -4,27 +4,22 @@ orbs:
   gcp-gcr: circleci/gcp-gcr@0.13.0
 commands:
   set-version-env:
-    description: Set SHA1_TAG, SERVER_VERSION, NX_BASE_BRANCH
+    description: Set SHA1_TAG, SERVER_VERSION
     steps:
       - run:
           name: set env var
           command: |
-            NX_BASE_BRANCH="master"
-
             case $CIRCLE_BRANCH in
               test)
                 ENVIRONMENT="test"
-                NX_BASE_BRANCH="master"
                 ;;
               master)
                 ENVIRONMENT="production"
-                NX_BASE_BRANCH="master"
                 ;;
             esac
             echo 'export SHA1_TAG=${CIRCLE_SHA1:0:7}' >> $BASH_ENV
             echo 'export SERVER_VERSION="$(date +%s)-${SHA1_TAG}"' >> $BASH_ENV
             echo "export ENVIRONMENT=$ENVIRONMENT" >> $BASH_ENV
-            echo "export NX_BASE_BRANCH=$NX_BASE_BRANCH" >> $BASH_ENV
             source $BASH_ENV
 jobs:
   lint:
@@ -35,9 +30,9 @@ jobs:
       - set-version-env
       - run: npm ci
       - nx/set-shas:
-          main-branch-name: $NX_BASE_BRANCH
+          main-branch-name: $CIRCLE_BRANCH
       - run: npx nx format:write
-      - run: npx nx affected --base=$NX_BASE -t lint --parallel=3
+      - run: npx nx affected --base=remotes/origin/$CIRCLE_BRANCH -t lint --parallel=3
 
   test:
     docker:
@@ -47,16 +42,8 @@ jobs:
       - set-version-env
       - run: npm ci
       - nx/set-shas:
-          main-branch-name: $NX_BASE_BRANCH
-      - run:
-          name: Print environment variables
-          command: |
-            echo "CIRCLE_BRANCH: $CIRCLE_BRANCH"
-            echo "SHA1_TAG: $SHA1_TAG"
-            echo "NX_BASE_BRANCH: $NX_BASE_BRANCH"
-            echo "NX_BASE: $NX_BASE"
-            echo "NX_HEAD: $NX_HEAD"
-      - run: npx nx affected:test --base=$NX_BASE --parallel=3
+          main-branch-name: $CIRCLE_BRANCH
+      - run: npx nx affected:test --base=remotes/origin/$CIRCLE_BRANCH --parallel=3
 
   build-server--and-push-image:
     executor: gcp-gcr/default
@@ -72,7 +59,7 @@ jobs:
       - set-version-env
       - run: npm ci
       - nx/set-shas
-      - run: npx nx affected -t build --parallel=3
+      - run: npx nx build server --parallel=3
       - gcp-gcr/gcr-auth:
           gcloud-service-key: GOOGLE_SERVICE_ACCOUNT_KEY
       - gcp-gcr/build-image:
