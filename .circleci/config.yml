@@ -8,7 +8,7 @@ workflows:
   setup:
     jobs:
       - path-filtering/filter:
-          base-revision: $CIRCLE_BRANCH
+          base-revision: master
           mapping: |
             apps/server/.* run-service-workflow true
             apps/client/.* run-client-workflow true
