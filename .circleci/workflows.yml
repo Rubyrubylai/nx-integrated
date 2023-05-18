@@ -131,4 +131,4 @@ workflows:
           image: nx-integrated
           registry-url: asia.gcr.io
           tag: ${CIRCLE_BRANCH}
-          dockerfile: apps/server/Dockerfile
+          dockerfile: ./apps/server/Dockerfile
