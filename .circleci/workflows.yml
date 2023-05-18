@@ -96,28 +96,34 @@ jobs:
       - gcp-gcr/gcr-auth:
           gcloud-service-key: GOOGLE_SERVICE_ACCOUNT_KEY
       - gcp-gcr/build-image:
-          dockerfile: <<paramters.dockerfile>>
+          dockerfile: << parameters.dockerfile >>
           extra_build_args: --build-arg SERVER_VERSION=$SERVER_VERSION
-          image: <<parameters.image>>
-          registry-url: <<parameters.registry-url>>
+          image: << parameters.image >>
+          registry-url: << parameters.registry-url >>
           tag: ${SHA1_TAG}
       - gcp-gcr/push-image:
-          image: <<parameters.image>>
-          registry-url: <<parameters.registry-url>>
+          image: << parameters.image >>
+          registry-url: << parameters.registry-url >>
           tag: ${SHA1_TAG}
       - gcp-gcr/tag-image:
-          image: <<parameters.image>>
-          registry-url: <<parameters.registry-url>>
+          image: << parameters.image >>
+          registry-url: << parameters.registry-url >>
           source-tag: ${SHA1_TAG}
-          target-tag: <<parameters.tag>>
+          target-tag: << parameters.tag >>
 
 workflows:
   push-client:
-    when: << pipeline.parameters.run-client-workflow >>
+    when:
+      or:
+        - << pipeline.parameters.run-client-workflow >>
+        - << pipeline.parameters.run-all-workflow >>
     jobs:
       - lint
   push-server:
-    when: << pipeline.parameters.run-service-workflow >>
+    when:
+      or:
+        - << pipeline.parameters.run-service-workflow >>
+        - << pipeline.parameters.run-all-workflow >>
     jobs:
       # - get-last-successful-commit
       - lint
@@ -131,4 +137,4 @@ workflows:
           image: nx-integrated
           registry-url: asia.gcr.io
           tag: ${CIRCLE_BRANCH}
-          dockerfile: ./apps/server/Dockerfile
+          dockerfile: apps/server/Dockerfile
