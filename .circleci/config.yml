@@ -1,12 +1,14 @@
 version: 2.1
 setup: true
+
 orbs:
   path-filtering: circleci/path-filtering@0.0.2
+
 workflows:
   setup:
     jobs:
       - path-filtering/filter:
-          base-revision: master
+          base-revision: $CIRCLE_BRANCH
           mapping: |
             apps/server/.* run-service-workflow true
             apps/client/.* run-client-workflow true

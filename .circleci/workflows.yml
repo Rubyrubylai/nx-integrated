@@ -76,7 +76,7 @@ jobs:
             echo "base_revision: << pipeline.git.base_revision >>"
       - run: npx nx affected:test --base=remotes/origin/$CIRCLE_BRANCH --parallel=3
 
-  build-server-and-push-image:
+  build-and-push-image:
     executor: gcp-gcr/default
     parameters:
       image:
@@ -84,6 +84,8 @@ jobs:
       registry-url:
         type: string
       tag:
+        type: string
+      dockerfile:
         type: string
     steps:
       - checkout
@@ -94,7 +96,7 @@ jobs:
       - gcp-gcr/gcr-auth:
           gcloud-service-key: GOOGLE_SERVICE_ACCOUNT_KEY
       - gcp-gcr/build-image:
-          dockerfile: apps/server/Dockerfile
+          dockerfile: <<paramters.dockerfile>>
           extra_build_args: --build-arg SERVER_VERSION=$SERVER_VERSION
           image: <<parameters.image>>
           registry-url: <<parameters.registry-url>>
@@ -120,7 +122,7 @@ workflows:
       # - get-last-successful-commit
       - lint
       - test
-      - build-server-and-push-image:
+      - build-and-push-image:
           context:
             - gcr
           requires:
@@ -129,3 +131,4 @@ workflows:
           image: nx-integrated
           registry-url: asia.gcr.io
           tag: ${CIRCLE_BRANCH}
+          dockerfile: apps/server/Dockerfile
