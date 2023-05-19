@@ -99,6 +99,7 @@ export default Vue.extend({
   methods: {
     async getHello(p: Payments) {
       this.apiMsg = p.id
+      console.log('test')
       // const res = await axios.get('http://localhost:3000/api')
       // this.apiMsg = res.data.message
     }
