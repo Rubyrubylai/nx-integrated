@@ -29,6 +29,7 @@ commands:
 workflows:
   setup:
     jobs:
+      - set-version-env
       - path-filtering/filter:
           base-revision: $BASE_REVISION
           mapping: |
