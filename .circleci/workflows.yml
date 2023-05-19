@@ -23,9 +23,16 @@ commands:
       - run:
           name: set env var
           command: |
+            BASE_BRANCH="develop"
+
             case $CIRCLE_BRANCH in
+              develop)
+                ENVIRONMENT="develop"
+                BASE_BRANCH="test"
+                ;;
               test)
                 ENVIRONMENT="test"
+                BASE_BRANCH="master"
                 ;;
               master)
                 ENVIRONMENT="production"
@@ -34,6 +41,10 @@ commands:
             echo 'export SHA1_TAG=${CIRCLE_SHA1:0:7}' >> $BASH_ENV
             echo 'export SERVER_VERSION="$(date +%s)-${SHA1_TAG}"' >> $BASH_ENV
             echo "export ENVIRONMENT=$ENVIRONMENT" >> $BASH_ENV
+            echo "export BASE_BRANCH=$BASE_BRANCH" >> $BASH_ENV
+
+            echo "CIRCLE_BRANCH: $CIRCLE_BRANCH"
+            echo "BASE_BRANCH: $BASE_BRANCH"
             source $BASH_ENV
 jobs:
   # get-last-successful-commit:
@@ -60,7 +71,7 @@ jobs:
       - set-version-env
       - run: npm ci
       - nx/set-shas:
-          main-branch-name: master
+          main-branch-name: $BASE_BRANCH
       - run: npx nx format:write
       - run: npx nx affected --base=$NX_BASE -t lint --parallel=3
 
@@ -72,7 +83,7 @@ jobs:
       - set-version-env
       - run: npm ci
       - nx/set-shas:
-          main-branch-name: master
+          main-branch-name: $BASE_BRANCH
       - run: npx nx affected:test --base=$NX_BASE --parallel=3
 
   build-and-push-image:
