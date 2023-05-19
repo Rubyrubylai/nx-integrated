@@ -5,36 +5,10 @@ orbs:
   path-filtering: circleci/path-filtering@0.0.2
 
 workflows:
-  setup-develop:
-    when:
-      equal: [develop, << pipeline.git.branch >>]
+  setup:
     jobs:
       - path-filtering/filter:
-          base-revision: test
-          mapping: |
-            apps/server/.* run-service-workflow true
-            apps/client/.* run-client-workflow true
-            apps/libs/.* run-all-workflow true
-          config-path: .circleci/workflows.yml
-
-  setup-test:
-    when:
-      equal: [test, << pipeline.git.branch >>]
-    jobs:
-      - path-filtering/filter:
-          base-revision: master
-          mapping: |
-            apps/server/.* run-service-workflow true
-            apps/client/.* run-client-workflow true
-            apps/libs/.* run-all-workflow true
-          config-path: .circleci/workflows.yml
-
-  setup-master:
-    when:
-      equal: [master, << pipeline.git.branch >>]
-    jobs:
-      - path-filtering/filter:
-          base-revision: master
+          base-revision: $CIRCLE_BRANCH
           mapping: |
             apps/server/.* run-service-workflow true
             apps/client/.* run-client-workflow true
