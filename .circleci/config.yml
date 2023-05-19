@@ -8,9 +8,9 @@ workflows:
   setup:
     jobs:
       - path-filtering/filter:
-          base-revision: master
+          base-revision: << pipeline.git.branch >>
           mapping: |
             apps/server/.* run-service-workflow true
             apps/client/.* run-client-workflow true
-            apps/libse/.* run-all-workflow true
+            apps/libs/.* run-all-workflow true
           config-path: .circleci/workflows.yml
