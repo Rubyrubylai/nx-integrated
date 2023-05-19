@@ -4,12 +4,33 @@ setup: true
 orbs:
   path-filtering: circleci/path-filtering@0.0.2
 
-# 測試
+commands:
+  set-version-env:
+    description: Set BASE_REVISION
+    steps:
+      - run:
+          name: set base-revision
+          command: |
+            BASE_REVISION = "dev"
+            case << pipeline.git.branch >> in
+              develop)
+                BASE_REVISION="test"
+                ;;
+              test)
+                BASE_REVISION="master"
+                ;;
+              master)
+                BASE_REVISION="master"
+                ;;
+            esac
+            echo 'export BASE_REVISION=$BASE_REVISION' >> $BASH_ENV
+            source $BASH_ENV
+
 workflows:
   setup:
     jobs:
       - path-filtering/filter:
-          base-revision: << pipeline.git.branch >>
+          base-revision: $BASE_REVISION
           mapping: |
             apps/server/.* run-service-workflow true
             apps/client/.* run-client-workflow true
