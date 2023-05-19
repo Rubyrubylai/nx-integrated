@@ -28,7 +28,7 @@ commands:
             case $CIRCLE_BRANCH in
               develop)
                 ENVIRONMENT="develop"
-                if [ -n "${CIRCLE_PULL_REQUEST}" ]; then
+                if [ -n "$CIRCLE_PULL_REQUEST" ]; then
                   BASE_BRANCH="develop"
                 else
                   BASE_BRANCH="test"
@@ -36,7 +36,7 @@ commands:
                 ;;
               test)
                 ENVIRONMENT="test"
-                if [ -n "${CIRCLE_PULL_REQUEST}" ]; then
+                if [ -n "$CIRCLE_PULL_REQUEST" ]; then
                   BASE_BRANCH="test"
                 else
                   BASE_BRANCH="master"
@@ -54,6 +54,7 @@ commands:
 
             echo "CIRCLE_BRANCH: $CIRCLE_BRANCH"
             echo "BASE_BRANCH: $BASE_BRANCH"
+            echo "CIRCLE_PULL_REQUEST: $CIRCLE_PULL_REQUEST"
             source $BASH_ENV
 jobs:
   # get-last-successful-commit:
