@@ -5,7 +5,7 @@ orbs:
   path-filtering: circleci/path-filtering@0.0.2
 
 jobs:
-  set-version-env:
+  set-env:
     description: Set BASE_REVISION
     steps:
       - run:
@@ -29,7 +29,7 @@ jobs:
 workflows:
   setup:
     jobs:
-      - set-version-env
+      - set-env
       - path-filtering/filter:
           base-revision: $BASE_REVISION
           mapping: |
