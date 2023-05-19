@@ -1,0 +1,139 @@
+version: 2.1
+
+parameters:
+  run-service-workflow:
+    type: boolean
+    default: false
+  run-client-workflow:
+    type: boolean
+    default: false
+  run-all-workflow:
+    type: boolean
+    default: false
+
+orbs:
+  nx: nrwl/nx@1.6.1
+  gcp-gcr: circleci/gcp-gcr@0.13.0
+  # circleci: circleci/api@1.1
+
+commands:
+  set-version-env:
+    description: Set SHA1_TAG, SERVER_VERSION
+    steps:
+      - run:
+          name: set env var
+          command: |
+            case $CIRCLE_BRANCH in
+              test)
+                ENVIRONMENT="test"
+                ;;
+              master)
+                ENVIRONMENT="production"
+                ;;
+            esac
+            echo 'export SHA1_TAG=${CIRCLE_SHA1:0:7}' >> $BASH_ENV
+            echo 'export SERVER_VERSION="$(date +%s)-${SHA1_TAG}"' >> $BASH_ENV
+            echo "export ENVIRONMENT=$ENVIRONMENT" >> $BASH_ENV
+            source $BASH_ENV
+jobs:
+  # get-last-successful-commit:
+  #   docker:
+  #     - image: cimg/base:stable
+  #   steps:
+  #     - checkout
+  #     - circleci/api:
+  #         path: last_successful_commit
+  #         endpoint: project/github/Rubyrubylai/nx-integrated/pipeline
+  #         method: GET
+  #         query: filter[status]=success
+  #         headers:
+  #           Circle-Token: ${CIRCLE_TOKEN}
+  #     - run:
+  #         name: Print last successful commit SHA
+  #         command: echo "Last successful commit: $$(cat last_successful_commit | jq -r '.items[0].vcs_revision')"
+
+  lint:
+    docker:
+      - image: cimg/node:lts-browsers
+    steps:
+      - checkout
+      - set-version-env
+      - run: npm ci
+      - nx/set-shas:
+          main-branch-name: $CIRCLE_BRANCH
+      - run: npx nx format:write
+      - run: npx nx affected --base=$NX_BASE -t lint --parallel=3
+
+  test:
+    docker:
+      - image: cimg/node:lts-browsers
+    steps:
+      - checkout
+      - set-version-env
+      - run: npm ci
+      - nx/set-shas:
+          main-branch-name: $CIRCLE_BRANCH
+      - run: npx nx affected:test --base=$NX_BASE --parallel=3
+
+  build-and-push-image:
+    executor: gcp-gcr/default
+    parameters:
+      image:
+        type: string
+      registry-url:
+        type: string
+      tag:
+        type: string
+      dockerfile:
+        type: string
+    steps:
+      - checkout
+      - set-version-env
+      - run: npm ci
+      - nx/set-shas
+      - run: npx nx build server --parallel=3
+      - gcp-gcr/gcr-auth:
+          gcloud-service-key: GOOGLE_SERVICE_ACCOUNT_KEY
+      - gcp-gcr/build-image:
+          dockerfile: << parameters.dockerfile >>
+          extra_build_args: --build-arg SERVER_VERSION=$SERVER_VERSION
+          image: << parameters.image >>
+          registry-url: << parameters.registry-url >>
+          tag: ${SHA1_TAG}
+      - gcp-gcr/push-image:
+          image: << parameters.image >>
+          registry-url: << parameters.registry-url >>
+          tag: ${SHA1_TAG}
+      - gcp-gcr/tag-image:
+          image: << parameters.image >>
+          registry-url: << parameters.registry-url >>
+          source-tag: ${SHA1_TAG}
+          target-tag: << parameters.tag >>
+
+workflows:
+  push-client:
+    when:
+      or:
+        - << pipeline.parameters.run-client-workflow >>
+        - << pipeline.parameters.run-all-workflow >>
+    jobs:
+      - lint
+  push-server:
+    when:
+      or:
+        - << pipeline.parameters.run-service-workflow >>
+        - << pipeline.parameters.run-all-workflow >>
+    jobs:
+      # - get-last-successful-commit
+      - lint
+      - test
+      - build-and-push-image:
+          context:
+            - gcr
+          requires:
+            - lint
+            - test
+          image: nx-integrated
+          registry-url: asia.gcr.io
+          tag: ${CIRCLE_BRANCH}
+          dockerfile: apps/server/Dockerfile
