@@ -89,12 +89,15 @@ jobs:
   test:
     docker:
       - image: cimg/node:lts-browsers
+    parameters:
+      main-branch:
+        type: string
     steps:
       - checkout
       - set-version-env
       - run: npm ci
       - nx/set-shas:
-          main-branch-name: test
+          main-branch-name: << parameters.main-branch >>
       - run:
           command: |
             echo "CIRCLE_BRANCH: $CIRCLE_BRANCH"
@@ -138,10 +141,6 @@ jobs:
   #         target-tag: << parameters.tag >>
 
 workflows:
-  pull_requests:
-    jobs:
-      - lint
-      - test
   push-client:
     when:
       or:
@@ -157,7 +156,8 @@ workflows:
     jobs:
       # - get-last-successful-commit
       - lint
-      - test
+      - test:
+          main-branch: test
       # - build-and-push-image:
       #     context:
       #       - gcr
