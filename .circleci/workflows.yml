@@ -160,7 +160,7 @@ workflows:
           command: |
             echo "branch: << pipeline.event.branch >>"
       - test:
-          main-branch: << pipeline.event.branch == 'dev' ? 'test' : (pipeline.event.branch == 'test' ? 'master' : 'dev') >>
+          main-branch: test
       # - build-and-push-image:
       #     context:
       #       - gcr
