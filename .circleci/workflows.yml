@@ -14,12 +14,14 @@ parameters:
 orbs:
   nx: nrwl/nx@1.6.1
   gcp-gcr: circleci/gcp-gcr@0.13.0
+  ghpr: narrativescience/ghpr@1.1.6
   # circleci: circleci/api@1.1
 
 commands:
   set-version-env:
     description: Set SHA1_TAG, SERVER_VERSION
     steps:
+      - ghpr/get-pr-info
       - run:
           name: set env var
           command: |
@@ -28,7 +30,7 @@ commands:
             case $CIRCLE_BRANCH in
               develop)
                 ENVIRONMENT="develop"
-                if [ -n "$CIRCLE_PULL_REQUEST" ]; then
+                if [ -n "$GITHUB_PR_BASE_BRANCH" ]; then
                   BASE_BRANCH="develop"
                 else
                   BASE_BRANCH="test"
@@ -36,7 +38,7 @@ commands:
                 ;;
               test)
                 ENVIRONMENT="test"
-                if [ -n "$CIRCLE_PULL_REQUEST" ]; then
+                if [ -n "$GITHUB_PR_BASE_BRANCH" ]; then
                   BASE_BRANCH="test"
                 else
                   BASE_BRANCH="master"
@@ -55,6 +57,7 @@ commands:
             echo "CIRCLE_BRANCH: $CIRCLE_BRANCH"
             echo "BASE_BRANCH: $BASE_BRANCH"
             echo "CIRCLE_PULL_REQUEST: $CIRCLE_PULL_REQUEST"
+            echo "GITHUB_PR_BASE_BRANCH: $GITHUB_PR_BASE_BRANCH"
             source $BASH_ENV
 jobs:
   # get-last-successful-commit:
