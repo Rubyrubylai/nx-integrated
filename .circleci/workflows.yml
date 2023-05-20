@@ -10,6 +10,9 @@ parameters:
   run-all-workflow:
     type: boolean
     default: false
+  pull_request:
+    type: boolean
+    default: false
 
 orbs:
   nx: nrwl/nx@1.6.1
@@ -103,6 +106,7 @@ jobs:
             echo "CIRCLE_BRANCH: $CIRCLE_BRANCH"
             echo "BASE_BRANCH: $BASE_BRANCH"
             echo "NX_BASE: $NX_BASE"
+            echo "CIRCLE_PULL_REQUEST: $CIRCLE_PULL_REQUEST"
       - run: npx nx affected:test --base=$NX_BASE --parallel=3
 
   # build-and-push-image:
@@ -149,16 +153,14 @@ workflows:
     jobs:
       - lint
   push-server:
-    when:
-      or:
-        - << pipeline.parameters.run-service-workflow >>
-        - << pipeline.parameters.run-all-workflow >>
+    unless: << pipeline.parameters.pull_request >>
+    # when:
+    #   or:
+    #     - << pipeline.parameters.run-service-workflow >>
+    #     - << pipeline.parameters.run-all-workflow >>
     jobs:
       # - get-last-successful-commit
       - lint
-      - run:
-          command: |
-            echo "branch: << pipeline.event.branch >>"
       - test:
           main-branch: test
       # - build-and-push-image:
@@ -171,3 +173,10 @@ workflows:
       #     registry-url: asia.gcr.io
       #     tag: ${CIRCLE_BRANCH}
       #     dockerfile: apps/server/Dockerfile
+  pull_request:
+    when: << pipeline.parameters.pull_request >>
+    jobs:
+      - lint
+      - test:
+          main-branch: test
+    
