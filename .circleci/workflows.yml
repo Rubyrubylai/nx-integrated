@@ -3,7 +3,7 @@ version: 2.1
 parameters:
   run-service-workflow:
     type: boolean
-    default: false
+    default: true
   run-client-workflow:
     type: boolean
     default: false
@@ -14,26 +14,50 @@ parameters:
 orbs:
   nx: nrwl/nx@1.6.1
   gcp-gcr: circleci/gcp-gcr@0.13.0
+  ghpr: narrativescience/ghpr@1.1.6
   # circleci: circleci/api@1.1
 
 commands:
   set-version-env:
     description: Set SHA1_TAG, SERVER_VERSION
     steps:
+      - ghpr/get-pr-info
       - run:
           name: set env var
           command: |
+            BASE_BRANCH="develop"
+
             case $CIRCLE_BRANCH in
+              develop)
+                ENVIRONMENT="develop"
+                if [ -n "$GITHUB_PR_BASE_BRANCH" ]; then
+                  BASE_BRANCH="develop"
+                else
+                  BASE_BRANCH="test"
+                fi
+                ;;
               test)
                 ENVIRONMENT="test"
+                if [ -n "$GITHUB_PR_BASE_BRANCH" ]; then
+                  BASE_BRANCH="test"
+                else
+                  BASE_BRANCH="master"
+                fi
                 ;;
               master)
                 ENVIRONMENT="production"
+                BASE_BRANCH="master"
                 ;;
             esac
             echo 'export SHA1_TAG=${CIRCLE_SHA1:0:7}' >> $BASH_ENV
             echo 'export SERVER_VERSION="$(date +%s)-${SHA1_TAG}"' >> $BASH_ENV
             echo "export ENVIRONMENT=$ENVIRONMENT" >> $BASH_ENV
+            echo "export BASE_BRANCH=$BASE_BRANCH" >> $BASH_ENV
+
+            echo "CIRCLE_BRANCH: $CIRCLE_BRANCH"
+            echo "BASE_BRANCH: $BASE_BRANCH"
+            echo "CIRCLE_PULL_REQUEST: $CIRCLE_PULL_REQUEST"
+            echo "GITHUB_PR_BASE_BRANCH: $GITHUB_PR_BASE_BRANCH"
             source $BASH_ENV
 jobs:
   # get-last-successful-commit:
@@ -60,7 +84,7 @@ jobs:
       - set-version-env
       - run: npm ci
       - nx/set-shas:
-          main-branch-name: master
+          main-branch-name: test
       - run: npx nx format:write
       - run: npx nx affected --base=$NX_BASE -t lint --parallel=3
 
@@ -72,43 +96,48 @@ jobs:
       - set-version-env
       - run: npm ci
       - nx/set-shas:
-          main-branch-name: master
+          main-branch-name: test
+      - run:
+          command: |
+            echo "CIRCLE_BRANCH: $CIRCLE_BRANCH"
+            echo "BASE_BRANCH: $BASE_BRANCH"
+            echo "NX_BASE: $NX_BASE"
       - run: npx nx affected:test --base=$NX_BASE --parallel=3
 
-  build-and-push-image:
-    executor: gcp-gcr/default
-    parameters:
-      image:
-        type: string
-      registry-url:
-        type: string
-      tag:
-        type: string
-      dockerfile:
-        type: string
-    steps:
-      - checkout
-      - set-version-env
-      - run: npm ci
-      - nx/set-shas
-      - run: npx nx build server --parallel=3
-      - gcp-gcr/gcr-auth:
-          gcloud-service-key: GOOGLE_SERVICE_ACCOUNT_KEY
-      - gcp-gcr/build-image:
-          dockerfile: << parameters.dockerfile >>
-          extra_build_args: --build-arg SERVER_VERSION=$SERVER_VERSION
-          image: << parameters.image >>
-          registry-url: << parameters.registry-url >>
-          tag: ${SHA1_TAG}
-      - gcp-gcr/push-image:
-          image: << parameters.image >>
-          registry-url: << parameters.registry-url >>
-          tag: ${SHA1_TAG}
-      - gcp-gcr/tag-image:
-          image: << parameters.image >>
-          registry-url: << parameters.registry-url >>
-          source-tag: ${SHA1_TAG}
-          target-tag: << parameters.tag >>
+  # build-and-push-image:
+  #   executor: gcp-gcr/default
+  #   parameters:
+  #     image:
+  #       type: string
+  #     registry-url:
+  #       type: string
+  #     tag:
+  #       type: string
+  #     dockerfile:
+  #       type: string
+  #   steps:
+  #     - checkout
+  #     - set-version-env
+  #     - run: npm ci
+  #     - nx/set-shas
+  #     - run: npx nx build server --parallel=3
+  #     - gcp-gcr/gcr-auth:
+  #         gcloud-service-key: GOOGLE_SERVICE_ACCOUNT_KEY
+  #     - gcp-gcr/build-image:
+  #         dockerfile: << parameters.dockerfile >>
+  #         extra_build_args: --build-arg SERVER_VERSION=$SERVER_VERSION
+  #         image: << parameters.image >>
+  #         registry-url: << parameters.registry-url >>
+  #         tag: ${SHA1_TAG}
+  #     - gcp-gcr/push-image:
+  #         image: << parameters.image >>
+  #         registry-url: << parameters.registry-url >>
+  #         tag: ${SHA1_TAG}
+  #     - gcp-gcr/tag-image:
+  #         image: << parameters.image >>
+  #         registry-url: << parameters.registry-url >>
+  #         source-tag: ${SHA1_TAG}
+  #         target-tag: << parameters.tag >>
 
 workflows:
   push-client:
@@ -127,13 +156,13 @@ workflows:
       # - get-last-successful-commit
       - lint
       - test
-      - build-and-push-image:
-          context:
-            - gcr
-          requires:
-            - lint
-            - test
-          image: nx-integrated
-          registry-url: asia.gcr.io
-          tag: ${CIRCLE_BRANCH}
-          dockerfile: apps/server/Dockerfile
+      # - build-and-push-image:
+      #     context:
+      #       - gcr
+      #     requires:
+      #       - lint
+      #       - test
+      #     image: nx-integrated
+      #     registry-url: asia.gcr.io
+      #     tag: ${CIRCLE_BRANCH}
+      #     dockerfile: apps/server/Dockerfile
