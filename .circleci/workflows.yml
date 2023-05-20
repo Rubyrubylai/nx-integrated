@@ -32,23 +32,14 @@ commands:
             case $CIRCLE_BRANCH in
               develop)
                 ENVIRONMENT="develop"
-                if [ -n "$CIRCLE_PULL_REQUEST" ]; then
-                  BASE_BRANCH="develop"
-                else
-                  BASE_BRANCH="test"
-                fi
+                BASE_BRANCH="test"
                 ;;
               test)
                 ENVIRONMENT="test"
-                if [ -n "$CIRCLE_PULL_REQUEST" ]; then
-                  BASE_BRANCH="test"
-                else
-                  BASE_BRANCH="master"
-                fi
+                BASE_BRANCH="master"
                 ;;
               master)
                 ENVIRONMENT="production"
-                BASE_BRANCH="master"
                 ;;
             esac
             echo 'export SHA1_TAG=${CIRCLE_SHA1:0:7}' >> $BASH_ENV
