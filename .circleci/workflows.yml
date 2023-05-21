@@ -32,14 +32,25 @@ commands:
             case $CIRCLE_BRANCH in
               develop)
                 ENVIRONMENT="develop"
-                BASE_BRANCH="test"
+                if git log -1 --pretty=%s%n%b | grep 'Merge pull request'; then
+                  BASE_BRANCH="develop"
+                else
+                  BASE_BRANCH="test"
+                fi
                 ;;
               test)
                 ENVIRONMENT="test"
-                BASE_BRANCH="master"
+                if git log -1 --pretty=%s%n%b | grep 'Merge pull request'; then
+                  BASE_BRANCH="test"
+                else
+                  BASE_BRANCH="master"
+                fi
                 ;;
               master)
                 ENVIRONMENT="production"
+                if git log -1 --pretty=%s%n%b | grep 'Merge pull request'; then
+                  BASE_BRANCH="master"
+                fi
                 ;;
             esac
             echo 'export SHA1_TAG=${CIRCLE_SHA1:0:7}' >> $BASH_ENV
@@ -76,7 +87,7 @@ jobs:
       - set-version-env
       - run: npm ci
       - nx/set-shas:
-          main-branch-name: test
+          main-branch-name: $BASE_BRANCH
       - run: npx nx format:write
       - run: npx nx affected --base=$NX_BASE -t lint --parallel=3
 
@@ -91,7 +102,7 @@ jobs:
       - set-version-env
       - run: npm ci
       - nx/set-shas:
-          main-branch-name: test
+          main-branch-name: $BASE_BRANCH
       - run:
           command: |
             echo "CIRCLE_BRANCH: $CIRCLE_BRANCH"
