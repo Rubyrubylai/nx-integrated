@@ -32,7 +32,7 @@ commands:
             case $CIRCLE_BRANCH in
               develop)
                 ENVIRONMENT="develop"
-                if [ -n "$CIRCLE_PULL_REQUEST" ]; then
+                if git log -1 --pretty=%s%n%b | grep 'Merge pull request'; then
                   BASE_BRANCH="develop"
                 else
                   BASE_BRANCH="test"
@@ -40,7 +40,7 @@ commands:
                 ;;
               test)
                 ENVIRONMENT="test"
-                if [ -n "$CIRCLE_PULL_REQUEST" ]; then
+                if git log -1 --pretty=%s%n%b | grep 'Merge pull request'; then
                   BASE_BRANCH="test"
                 else
                   BASE_BRANCH="master"
@@ -48,7 +48,9 @@ commands:
                 ;;
               master)
                 ENVIRONMENT="production"
-                BASE_BRANCH="master"
+                if git log -1 --pretty=%s%n%b | grep 'Merge pull request'; then
+                  BASE_BRANCH="master"
+                fi
                 ;;
             esac
             echo 'export SHA1_TAG=${CIRCLE_SHA1:0:7}' >> $BASH_ENV
