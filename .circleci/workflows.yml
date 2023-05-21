@@ -109,6 +109,9 @@ jobs:
             echo "BASE_BRANCH: $BASE_BRANCH"
             echo "NX_BASE: $NX_BASE"
             echo "CIRCLE_PULL_REQUEST: $CIRCLE_PULL_REQUEST"
+            if [ "$CIRCLE_BRANCH" == "$BASE_BRANCH" ]; then
+              echo "CIRCLE_BRANCH and BASE_BRANCH are equal"
+            fi
       - run: npx nx affected:test --base=$NX_BASE --parallel=3
 
   # build-and-push-image:
