@@ -27,32 +27,8 @@ commands:
       - run:
           name: set env var
           command: |
-            BASE_BRANCH="develop"
+            BASE_BRANCH=test
 
-            case $CIRCLE_BRANCH in
-              develop)
-                ENVIRONMENT="develop"
-                if git log -1 --pretty=%s%n%b | grep 'Merge pull request'; then
-                  BASE_BRANCH=develop
-                else
-                  BASE_BRANCH=test
-                fi
-                ;;
-              test)
-                ENVIRONMENT="test"
-                if git log -1 --pretty=%s%n%b | grep 'Merge pull request'; then
-                  BASE_BRANCH=test
-                else
-                  BASE_BRANCH=master
-                fi
-                ;;
-              master)
-                ENVIRONMENT="production"
-                if git log -1 --pretty=%s%n%b | grep 'Merge pull request'; then
-                  BASE_BRANCH=master
-                fi
-                ;;
-            esac
             echo 'export SHA1_TAG=${CIRCLE_SHA1:0:7}' >> $BASH_ENV
             echo 'export SERVER_VERSION="$(date +%s)-${SHA1_TAG}"' >> $BASH_ENV
             echo "export ENVIRONMENT=$ENVIRONMENT" >> $BASH_ENV
@@ -87,7 +63,7 @@ jobs:
       - set-version-env
       - run: npm ci
       - nx/set-shas:
-          main-branch-name: develop
+          main-branch-name: $BASE_BRANCH
       - run: npx nx format:write
       - run: npx nx affected --base=$NX_BASE -t lint --parallel=3
 
@@ -108,7 +84,7 @@ jobs:
               echo "CIRCLE_BRANCH and BASE_BRANCH are equal"
             fi
       - nx/set-shas:
-          main-branch-name: develop
+          main-branch-name: $BASE_BRANCH
       - run: npx nx affected:test --base=$NX_BASE --parallel=3
 
   # build-and-push-image:
