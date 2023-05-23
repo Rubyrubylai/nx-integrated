@@ -78,6 +78,9 @@ jobs:
   test:
     docker:
       - image: cimg/node:lts-browsers
+    parameters:
+      main-branch:
+        type: string
     steps:
       - checkout
       - set-version-env
@@ -96,7 +99,7 @@ jobs:
               echo "CIRCLE_BRANCH and BASE_BRANCH are equal"
             fi
       - nx/set-shas:
-          main-branch-name: develop
+          main-branch-name: << parameters.main-branch >>
       - run: npx nx affected:test --base=$NX_BASE --parallel=3
 
   build-and-push-image:
@@ -149,7 +152,8 @@ workflows:
         - << pipeline.parameters.run-all-workflow >>
     jobs:
       - lint
-      - test
+      - test:
+          main-branch: develop
       # - build-and-push-image:
       #     context:
       #       - gcr
