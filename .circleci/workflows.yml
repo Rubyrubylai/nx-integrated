@@ -79,7 +79,7 @@ jobs:
     docker:
       - image: cimg/node:lts-browsers
     environment:
-      - MAIN_BRANCH_NAME: develop
+      - MAIN_BRANCH_NAME: << pipeline.git.branch >>
     steps:
       - checkout
       # - set-version-env
