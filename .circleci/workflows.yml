@@ -86,7 +86,8 @@ jobs:
       - run: npm ci
       - run:
           command: |
-            MAIN_BRANCH_NAME=develop
+            echo "export MAIN_BRANCH_NAME=develop" >> $BASH_ENV
+            source $BASH_ENV
       - nx/set-shas:
           main-branch-name: $MAIN_BRANCH_NAME
       - run:
