@@ -26,39 +26,39 @@ commands:
       - run:
           name: set env var
           command: |
-            BASE_BRANCH=develop
+            MAIN_BRANCH_NAME=develop
 
             case $CIRCLE_BRANCH in
               develop)
                 ENVIRONMENT="develop"
                 if git log -1 --pretty=%s%n%b | grep 'Merge pull request'; then
-                  BASE_BRANCH=develop
+                  MAIN_BRANCH_NAME=develop
                 else
-                  BASE_BRANCH=test
+                  MAIN_BRANCH_NAME=develop
                 fi
                 ;;
               test)
                 ENVIRONMENT="test"
                 if git log -1 --pretty=%s%n%b | grep 'Merge pull request'; then
-                  BASE_BRANCH=test
+                  MAIN_BRANCH_NAME=test
                 else
-                  BASE_BRANCH=master
+                  MAIN_BRANCH_NAME=master
                 fi
                 ;;
               master)
                 ENVIRONMENT="production"
                 if git log -1 --pretty=%s%n%b | grep 'Merge pull request'; then
-                  BASE_BRANCH=master
+                  MAIN_BRANCH_NAME=master
                 fi
                 ;;
             esac
             echo 'export SHA1_TAG=${CIRCLE_SHA1:0:7}' >> "$BASH_ENV"
             echo 'export SERVER_VERSION="$(date +%s)-${SHA1_TAG}"' >> "$BASH_ENV"
             echo "export ENVIRONMENT=$ENVIRONMENT" >> "$BASH_ENV"
-            echo "export BASE_BRANCH=$BASE_BRANCH" >> "$BASH_ENV"
+            echo "export MAIN_BRANCH_NAME=$MAIN_BRANCH_NAME" >> "$BASH_ENV"
 
             echo "CIRCLE_BRANCH: $CIRCLE_BRANCH"
-            echo "BASE_BRANCH: $BASE_BRANCH"
+            echo "MAIN_BRANCH_NAME: $MAIN_BRANCH_NAME"
             echo "CIRCLE_PULL_REQUEST: $CIRCLE_PULL_REQUEST"
             source "$BASH_ENV"
 jobs:
@@ -78,26 +78,26 @@ jobs:
   test:
     docker:
       - image: cimg/node:lts-browsers
-    environment:
-      - BASE: << pipeline.git.branch >>
+    # environment:
+    #   - BASE: << pipeline.git.branch >>
     steps:
       - checkout
-      # - set-version-env
+      - set-version-env
       - run: npm ci
       # - run:
       #     command: |
       #       echo 'export MAIN_BRANCH_NAME=develop' >> "$BASH_ENV"
       #       source "$BASH_ENV"
       - nx/set-shas:
-          main-branch-name: $BASE
+          main-branch-name: $MAIN_BRANCH_NAME
       - run:
           command: |
             echo "CIRCLE_BRANCH: $CIRCLE_BRANCH"
-            echo "BASE: $BASE"
+            echo "MAIN_BRANCH_NAME: $MAIN_BRANCH_NAME"
             echo "NX_BASE: $NX_BASE"
             echo "CIRCLE_PULL_REQUEST: $CIRCLE_PULL_REQUEST"
-            if [ "$CIRCLE_BRANCH" == "$BASE" ]; then
-              echo "CIRCLE_BRANCH and BASE are equal"
+            if [ "$CIRCLE_BRANCH" == "$MAIN_BRANCH_NAME" ]; then
+              echo "CIRCLE_BRANCH and MAIN_BRANCH_NAME are equal"
             fi
       - run: npx nx affected:test --base=$NX_BASE --parallel=3
 
